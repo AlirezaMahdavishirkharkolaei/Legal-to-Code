@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legal-to-code"
+version = "0.1.0"
+description = "Rules of international economic law as tested, traceable code, with a codifiability index."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Alireza Mahdavi Shirkharkolaei" }]
+keywords = ["rules as code", "computational law", "international tax", "OECD Model Tax Convention", "WTO", "DSU", "legal technology"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+l2c = "legal_to_code.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["legal_to_code*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

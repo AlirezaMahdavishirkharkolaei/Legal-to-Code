@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Legal-to-Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: three views (tax treaty tools, DSU timeline, codifiability index) behind tabs.
+   Each tool: inputs on the left, the traced result on the right; one column on phones. */
+:root {
+  --paper: #f4f4f1;
+  --panel: #ffffff;
+  --ink: #1a1d24;
+  --muted: #5d636e;
+  --line: #dedfdb;
+  --accent: #2b55c4;
+  --accent-soft: #e5ebfa;
+  --a: #1d7a4a; --a-soft: #e0f2e8;
+  --b: #8a5a00; --b-soft: #fbf0d4;
+  --c: #a3332f; --c-soft: #f7e1df;
+  --display: "Fraunces", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121419; --panel: #1b1e25; --ink: #e9eaee; --muted: #a5abb6; --line: #2d313b;
+    --accent: #84a6f5; --accent-soft: #1e2a46; --a: #7fd3a2; --a-soft: #183024; --b: #f0c35e; --b-soft: #382c14;
+    --c: #f08a83; --c-soft: #3a1f1d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121419; --panel: #1b1e25; --ink: #e9eaee; --muted: #a5abb6; --line: #2d313b;
+  --accent: #84a6f5; --accent-soft: #1e2a46; --a: #7fd3a2; --a-soft: #183024; --b: #f0c35e; --b-soft: #382c14;
+  --c: #f08a83; --c-soft: #3a1f1d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+header.top { padding: 28px 0 10px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: end; justify-content: space-between; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: 34px; line-height: 1.1; }
+h2 { font-size: 21px; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; }
+a { color: var(--accent); }
+.sub { color: var(--muted); max-width: 70ch; margin-top: 6px; }
+.status { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; background: var(--panel); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--b); }
+.status.ready .dot { background: var(--a); } .status.error .dot { background: var(--c); }
+nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: 14px 0 18px; overflow-x: auto; }
+nav.tabs a { padding: 9px 14px; text-decoration: none; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; white-space: nowrap; }
+nav.tabs a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+section.view[hidden] { display: none; }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 16px; margin-bottom: 18px; }
+@media (max-width: 860px) { .tool { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+.panel h2 { margin-bottom: 4px; }
+.panel .art { font: 12.5px var(--mono); color: var(--muted); }
+form { display: grid; gap: 10px; margin-top: 12px; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+label.f input, label.f select, label.f textarea { width: 100%; min-width: 0; }
+label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+input, select, textarea, button { font: 14px var(--body); color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+textarea { font-family: var(--mono); font-size: 13px; min-height: 70px; resize: vertical; }
+label.chk { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+button { cursor: pointer; font-weight: 500; min-height: 38px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; justify-self: start; padding: 8px 16px; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details.more summary { cursor: pointer; font-size: 13px; color: var(--accent); }
+.result .summary { font-weight: 600; font-size: 16px; }
+.trace { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.trace li { border-left: 3px solid var(--line); padding: 3px 10px; font-size: 13.5px; }
+.trace li.conclusion { border-left-color: var(--accent); }
+.trace li.judgment { border-left-color: var(--b); background: var(--b-soft); }
+.trace li.warning { border-left-color: var(--c); }
+.trace .ref { font: 11.5px var(--mono); color: var(--muted); margin-left: 6px; white-space: nowrap; }
+.kind { font: 11px var(--mono); text-transform: uppercase; color: var(--muted); margin-right: 6px; }
+.judg { margin-top: 10px; font-size: 13.5px; color: var(--b); }
+.cls { display: inline-block; font: 600 11.5px var(--mono); border-radius: 6px; padding: 1px 7px; }
+.cls.A { color: var(--a); background: var(--a-soft); } .cls.B { color: var(--b); background: var(--b-soft); } .cls.C { color: var(--c); background: var(--c-soft); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+td.date { font-family: var(--mono); white-space: nowrap; }
+tr.passed td { color: var(--muted); }
+.tbl { overflow-x: auto; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
+.tile .v { font: 600 26px var(--mono); }
+.tile .k { font-size: 13px; color: var(--muted); }
+.tile.A { border-left: 4px solid var(--a); } .tile.B { border-left: 4px solid var(--b); } .tile.C { border-left: 4px solid var(--c); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.filters input { flex: 1 1 220px; }
+.prov summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.prov summary::-webkit-details-marker { display: none; }
+.prov .meta { font: 12px var(--mono); color: var(--muted); }
+.prov .body { padding: 8px 0 14px; display: grid; gap: 6px; font-size: 14px; }
+.prov ul { margin: 0; padding-left: 18px; }
+.rubric { display: grid; gap: 8px; font-size: 14px; margin-bottom: 14px; }
+.note { font-size: 12.5px; color: var(--muted); }
+.msg { font-size: 13.5px; padding: 8px 12px; border-radius: 8px; background: var(--b-soft); color: var(--b); margin-bottom: 12px; }
+.msg[hidden] { display: none; }
+footer { color: var(--muted); font-size: 13px; padding: 10px 0 40px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Legal-to-Code</h1>
+      <p class="sub">Rules of international economic law as tested, traceable code. Every result shows the steps it took and
+        the provision behind each one, and it stops wherever a legal judgment is needed instead of guessing.</p>
+    </div>
+    <span class="status" id="status" role="status"><span class="dot"></span><span id="status-text">Loading the engine…</span></span>
+  </header>
+  <nav class="tabs" aria-label="Views">
+    <a href="#tax">Tax treaties</a><a href="#dsu">WTO dispute timeline</a><a href="#index">Codifiability index</a>
+  </nav>
+  <p class="msg" id="msg" hidden></p>
+
+  <section class="view" id="view-tax" aria-label="Tax treaty tools">
+    <div class="tool">
+      <div class="panel"><h2>Withholding tax limit</h2><p class="art">OECD Model Arts. 10(2), 11(2), 12(1)</p>
+        <form id="f-withholding">
+          <div class="row">
+            <label class="f">Income<select name="income"><option value="dividends">Dividends</option><option value="interest">Interest</option><option value="royalties">Royalties</option></select></label>
+            <label class="f">Beneficial owner?<select name="beneficial_owner"><option value="true">Yes</option><option value="false">No</option><option value="">Not decided</option></select></label>
+          </div>
+          <label class="chk"><input type="checkbox" name="recipient_is_company" checked> Recipient is a company (not a partnership)</label>
+          <div class="row">
+            <label class="f">Direct holding (%)<input type="number" name="holding_share" value="30" min="0" max="100" step="0.1"></label>
+            <label class="f">Days held (incl. payment date)<input type="number" name="holding_days" value="400" min="0"></label>
+          </div>
+          <details class="more"><summary>Use a specific treaty's rates</summary>
+            <div class="row" style="margin-top:8px">
+              <label class="f">Treaty name<input name="t_name" placeholder="OECD Model (2017)"></label>
+              <label class="f">Qualifying dividends %<input type="number" name="t_dq" placeholder="5" step="0.1"></label>
+              <label class="f">Other dividends %<input type="number" name="t_do" placeholder="15" step="0.1"></label>
+              <label class="f">Holding threshold %<input type="number" name="t_th" placeholder="25" step="0.1"></label>
+              <label class="f">Holding period (days)<input type="number" name="t_days" placeholder="365"></label>
+              <label class="f">Interest %<input type="number" name="t_int" placeholder="10" step="0.1"></label>
+              <label class="f">Royalties %<input type="number" name="t_roy" placeholder="0" step="0.1"></label>
+            </div></details>
+          <button class="primary" type="submit" disabled>Calculate</button>
+        </form></div>
+      <div class="panel result" id="r-withholding" aria-live="polite"></div>
+    </div>
+
+    <div class="tool">
+      <div class="panel"><h2>183-day rule (employment income)</h2><p class="art">OECD Model Art. 15(2)</p>
+        <form id="f-employment">
+          <label class="f">Days in the work State, one trip per line (YYYY-MM-DD to YYYY-MM-DD)<textarea name="trips">2025-09-01 to 2025-12-09
+2026-01-01 to 2026-04-10</textarea></label>
+          <div class="row">
+            <label class="f">Fiscal year starts<input type="date" name="fiscal_year_start" value="2026-01-01"></label>
+            <label class="f">Fiscal year ends<input type="date" name="fiscal_year_end" value="2026-12-31"></label>
+          </div>
+          <label class="chk"><input type="checkbox" name="employer_resident_in_work_state"> Employer is resident in the work State</label>
+          <label class="chk"><input type="checkbox" name="borne_by_pe_in_work_state"> Pay is borne by the employer's PE in the work State</label>
+          <button class="primary" type="submit" disabled>Check</button>
+        </form></div>
+      <div class="panel result" id="r-employment" aria-live="polite"></div>
+    </div>
+
+    <div class="tool">
+      <div class="panel"><h2>Construction site PE</h2><p class="art">OECD Model Art. 5(3)</p>
+        <form id="f-construction">
+          <div class="row">
+            <label class="f">Start<input type="date" name="start" value="2025-03-01"></label>
+            <label class="f">End<input type="date" name="end" value="2026-04-15"></label>
+            <label class="f">Treaty threshold (months)<input type="number" name="months" value="12" min="1"></label>
+          </div>
+          <button class="primary" type="submit" disabled>Check</button>
+        </form></div>
+      <div class="panel result" id="r-construction" aria-live="polite"></div>
+    </div>
+
+    <div class="tool">
+      <div class="panel"><h2>Home office PE</h2><p class="art">OECD Model Art. 5(1), 2025 Commentary</p>
+        <form id="f-home_office">
+          <div class="row">
+            <label class="f">Highest share of working time at that place in any 12 months (%)<input type="number" name="share" value="60" min="0" max="100"></label>
+            <label class="f">Commercial reason to work in that State?<select name="commercial_reason"><option value="">Not decided</option><option value="true">Yes</option><option value="false">No</option></select></label>
+          </div>
+          <button class="primary" type="submit" disabled>Check</button>
+        </form></div>
+      <div class="panel result" id="r-home_office" aria-live="polite"></div>
+    </div>
+
+    <div class="tool">
+      <div class="panel"><h2>Dual residence of an individual</h2><p class="art">OECD Model Art. 4(2)</p>
+        <form id="f-residence">
+          <div class="row">
+            <label class="f">Permanent home in<select name="permanent_home"><option>A</option><option>B</option><option selected>both</option><option>neither</option></select></label>
+            <label class="f">Centre of vital interests<select name="vital_interests"><option value="">Not assessed</option><option>A</option><option>B</option><option selected>undeterminable</option></select></label>
+            <label class="f">Habitual abode in<select name="habitual_abode"><option value="">Not assessed</option><option selected>A</option><option>B</option><option>both</option><option>neither</option></select></label>
+            <label class="f">National of<select name="nationality"><option value="">Not assessed</option><option>A</option><option>B</option><option>both</option><option>neither</option></select></label>
+          </div>
+          <button class="primary" type="submit" disabled>Apply tie-breaker</button>
+        </form></div>
+      <div class="panel result" id="r-residence" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-dsu" aria-label="WTO dispute timeline" hidden>
+    <div class="tool">
+      <div class="panel"><h2>Dispute settlement time limits</h2><p class="art">WTO DSU Arts. 4–22</p>
+        <form id="f-dsu">
+          <p class="note">Enter the dates of events that have happened; leave the rest empty.</p>
+          <div class="row">
+            <label class="f">Consultations requested<input type="date" name="consultations_requested" value="2026-01-15" required></label>
+            <label class="f">Panel established<input type="date" name="panel_established" value="2026-04-20"></label>
+            <label class="f">Panel composed<input type="date" name="panel_composed" value="2026-06-01"></label>
+            <label class="f">Panel report circulated<input type="date" name="panel_report_circulated"></label>
+            <label class="f">Appeal notified<input type="date" name="appeal_notified"></label>
+            <label class="f">Reports adopted<input type="date" name="reports_adopted"></label>
+            <label class="f">Reasonable period expires<input type="date" name="rpt_expires"></label>
+            <label class="f">Compliance referral (21.5)<input type="date" name="compliance_referral"></label>
+            <label class="f">As of<input type="date" name="as_of" value="2026-11-15"></label>
+          </div>
+          <label class="chk"><input type="checkbox" name="urgent"> Urgent case (e.g. perishable goods)</label>
+          <button class="primary" type="submit" disabled>Compute timeline</button>
+        </form></div>
+      <div class="panel result" id="r-dsu" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-index" aria-label="Codifiability index" hidden>
+    <div class="tiles" id="i-tiles"></div>
+    <div class="panel">
+      <div class="rubric" id="i-rubric"></div>
+      <div class="filters">
+        <input id="i-q" type="search" placeholder="Search provisions and ambiguities" aria-label="Search">
+        <select id="i-inst" aria-label="Instrument"><option value="">All instruments</option></select>
+        <select id="i-cls" aria-label="Class"><option value="">All classes</option><option value="A">A – Computable</option><option value="B">B – Structurable</option><option value="C">C – Not codifiable</option></select>
+      </div>
+      <div id="i-list"></div>
+    </div>
+  </section>
+
+  <footer>Research and teaching aid, not legal or tax advice. Bilateral treaties depart from the OECD Model: enter the actual
+    treaty's figures. Runs in your browser; nothing you enter leaves it. Source:
+    <a href="https://github.com/AlirezaMahdavishirkharkolaei/Legal-to-Code">github.com/AlirezaMahdavishirkharkolaei/Legal-to-Code</a> · <span id="ver"></span></footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let DATA = null, py = null;
+
+function setStatus(t, s) { $("status-text").textContent = t; $("status").className = "status" + (s ? " " + s : ""); }
+function msg(t) { $("msg").textContent = t || ""; $("msg").hidden = !t; }
+
+// ------------------------------------------------------------ routing
+function route() {
+  const v = ["tax", "dsu", "index"].includes(location.hash.slice(1)) ? location.hash.slice(1) : "tax";
+  ["tax", "dsu", "index"].forEach((k) => { $("view-" + k).hidden = k !== v; });
+  document.querySelectorAll("nav.tabs a").forEach((a) => a.setAttribute("aria-current", a.getAttribute("href") === "#" + v ? "page" : "false"));
+}
+window.addEventListener("hashchange", route);
+
+// ------------------------------------------------------------ results
+function renderResult(id, r) {
+  const el = $("r-" + id);
+  if (id === "dsu" && Array.isArray(r.outcome)) {
+    el.innerHTML = `<p class="summary">${esc(r.summary)}</p><div class="tbl"><table><thead><tr><th>Date</th><th>Time limit</th><th>Basis</th></tr></thead><tbody>` +
+      r.outcome.map((m) => `<tr class="${m.status}"><td class="date">${esc(m.date)}</td><td>${esc(m.label)}${m.kind !== "deadline" ? ` <span class="note">(${esc(m.kind)})</span>` : ""}${m.note ? `<br><span class="note">${esc(m.note)}</span>` : ""}</td><td class="date">${esc(m.basis.replace("WTO-DSU:", "Art. "))}</td></tr>`).join("") +
+      `</tbody></table></div>` + traceHtml(r.trace.filter((s) => s.kind !== "test"));
+    return;
+  }
+  el.innerHTML = `<p class="summary">${esc(r.summary)}</p>` + traceHtml(r.trace) +
+    (r.judgments_needed.length ? `<p class="judg">Judgment needed: ${r.judgments_needed.map(esc).join("; ")}</p>` : "");
+}
+function traceHtml(trace) {
+  if (!trace.length) return "";
+  return `<ol class="trace">${trace.map((s) => `<li class="${s.kind}"><span class="kind">${esc(s.kind)}</span>${esc(s.text)}${s.provision ? `<span class="ref">${esc(s.provision)}</span>` : ""}</li>`).join("")}</ol>`;
+}
+
+// ------------------------------------------------------------ forms -> rule args
+const num = (v) => (v === "" || v === null ? null : Number(v));
+const tri = (v) => (v === "" ? null : v === "true");
+const FORMS = {
+  withholding: (f) => {
+    const t = {};
+    if (f.t_name.value) t.name = f.t_name.value;
+    [["t_dq", "dividends_qualifying_rate"], ["t_do", "dividends_other_rate"], ["t_int", "interest_rate"], ["t_roy", "royalties_rate"]]
+      .forEach(([k, key]) => { if (f[k].value !== "") t[key] = Number(f[k].value) / 100; });
+    if (f.t_th.value !== "") t.dividends_holding_threshold = Number(f.t_th.value) / 100;
+    if (f.t_days.value !== "") t.dividends_holding_days = Number(f.t_days.value);
+    if (Object.keys(t).length && !t.name) t.name = "Custom treaty";
+    return ["oecd_mtc.withholding_rate", { income: f.income.value, beneficial_owner: tri(f.beneficial_owner.value),
+      recipient_is_company: f.recipient_is_company.checked, holding_share: (num(f.holding_share.value) || 0) / 100,
+      holding_days: num(f.holding_days.value) || 0, treaty: Object.keys(t).length ? t : null }];
+  },
+  employment: (f) => ["employment_trips", { trips: f.trips.value, fiscal_year_start: f.fiscal_year_start.value, fiscal_year_end: f.fiscal_year_end.value,
+    employer_resident_in_work_state: f.employer_resident_in_work_state.checked, borne_by_pe_in_work_state: f.borne_by_pe_in_work_state.checked }],
+  construction: (f) => ["oecd_mtc.construction_pe", { start: f.start.value, end: f.end.value, treaty: { construction_pe_months: num(f.months.value) || 12 } }],
+  home_office: (f) => ["oecd_mtc.home_office_pe", { share_of_working_time: (num(f.share.value) || 0) / 100, commercial_reason: tri(f.commercial_reason.value) }],
+  residence: (f) => {
+    const a = { permanent_home: f.permanent_home.value };
+    ["vital_interests", "habitual_abode", "nationality"].forEach((k) => { if (f[k].value) a[k] = f[k].value; });
+    return ["oecd_mtc.residence_tiebreaker_individual", a];
+  },
+  dsu: (f) => {
+    const a = { urgent: f.urgent.checked };
+    ["consultations_requested", "panel_established", "panel_composed", "panel_report_circulated", "appeal_notified",
+     "reports_adopted", "rpt_expires", "compliance_referral", "as_of"].forEach((k) => { if (f[k].value) a[k] = f[k].value; });
+    return ["wto_dsu.timeline", a];
+  },
+};
+
+async function runTool(id) {
+  if (!py) return;
+  const [rule, args] = FORMS[id]($("f-" + id));
+  try {
+    py.globals.set("_rule", rule); py.globals.set("_args", JSON.stringify(args));
+    renderResult(id, JSON.parse(await py.runPythonAsync("import bridge\nbridge.run(_rule, _args)")));
+    msg("");
+  } catch (e) {
+    msg("Could not compute: " + String(e.message || e).split("\n").filter(Boolean).pop().replace(/^\w+Error: /, ""));
+  }
+}
+
+// ------------------------------------------------------------ index
+function renderIndex() {
+  const s = DATA.stats;
+  $("i-tiles").innerHTML = `<div class="tile"><span class="v">${s.provisions}</span><span class="k">provisions classified · ${s.rules} executable rules</span></div>` +
+    ["A", "B", "C"].map((c) => `<div class="tile ${c}"><span class="v">${s.by_class[c]}</span><span class="k">class ${c} – ${esc(DATA.rubric[c].label)}</span></div>`).join("") +
+    `<div class="tile"><span class="v">${s.ambiguities}</span><span class="k">ambiguities documented while encoding</span></div>`;
+  $("i-rubric").innerHTML = ["A", "B", "C"].map((c) => `<p><span class="cls ${c}">${c}</span> <b>${esc(DATA.rubric[c].label)}.</b> ${esc(DATA.rubric[c].test)}</p>`).join("");
+  $("i-inst").innerHTML += Object.keys(s.by_instrument).map((i) => `<option>${esc(i)}</option>`).join("");
+  const draw = () => {
+    const q = $("i-q").value.toLowerCase(), inst = $("i-inst").value, cls = $("i-cls").value;
+    const rows = DATA.provisions.filter((p) => (!inst || p.instrument === inst) && (!cls || p.codifiability === cls) &&
+      (!q || JSON.stringify([p.title, p.summary, p.article, p.ambiguities]).toLowerCase().includes(q)));
+    $("i-list").innerHTML = rows.map((p) => `<details class="prov"><summary><span class="cls ${p.codifiability}">${p.codifiability}</span>
+      <span><b>${esc(p.article)}</b> ${esc(p.title)}</span><span class="meta">${esc(p.id.split(":")[0])} · ${p.ambiguity_count} ambiguit${p.ambiguity_count === 1 ? "y" : "ies"}</span></summary>
+      <div class="body"><p class="meta">${esc(p.instrument)}</p><p>${esc(p.summary)}</p><p><i>Why ${p.codifiability}:</i> ${esc(p.rationale)}</p>
+      ${p.ambiguities.length ? `<div><i>Ambiguities found while encoding:</i><ul>${p.ambiguities.map((a) => `<li>${esc(a)}</li>`).join("")}</ul></div>` : ""}
+      ${p.status_note ? `<p class="note">${esc(p.status_note)}</p>` : ""}
+      <p class="note">${p.implemented_by.length ? "Rules: " + p.implemented_by.map(esc).join(", ") : p.external ? `Implemented in <a href="${esc(p.external)}">${esc(p.external.split("/").pop())}</a>` : ""}</p></div></details>`).join("") ||
+      `<p class="note">No provisions match.</p>`;
+  };
+  ["i-q", "i-inst", "i-cls"].forEach((id) => $(id).addEventListener("input", draw));
+  draw();
+}
+
+async function boot() {
+  route();
+  DATA = await fetch("data.json").then((r) => r.json());
+  $("ver").textContent = "version " + DATA.version;
+  Object.entries(DATA.results).forEach(([k, r]) => renderResult(k, r));
+  renderIndex();
+  Object.keys(FORMS).forEach((id) => $("f-" + id).addEventListener("submit", (e) => { e.preventDefault(); runTool(id); }));
+  try {
+    py = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.7/full/" });
+    const bundle = await fetch("bundle.json").then((r) => r.json());
+    for (const [f, text] of Object.entries(bundle)) {
+      const dir = ("/app/" + f).split("/").slice(0, -1).join("/");
+      py.FS.mkdirTree(dir); py.FS.writeFile("/app/" + f, text);
+    }
+    await py.runPythonAsync("import sys\nsys.path.insert(0, '/app')\nimport bridge");
+    document.querySelectorAll("button.primary").forEach((b) => { b.disabled = false; });
+    setStatus("Ready", "ready");
+  } catch (e) {
+    setStatus("Engine failed to load", "error");
+    msg("The engine could not load in this browser. The example results and the index still work; the calculators need the engine.");
+  }
+}
+boot();
+</script>
+</body>
+</html>
