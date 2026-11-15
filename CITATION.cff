@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software or the codifiability index in research, please cite it as below."
+title: "Legal-to-Code: rules of international economic law as tested, traceable code"
+abstract: >-
+  Research framework for rules as code in international economic law. Provisions of the OECD Model
+  Tax Convention, the WTO Dispute Settlement Understanding, the GATS and the GloBE rules are classified
+  by codifiability (computable, structurable, not codifiable), implemented as traced rules, and annotated
+  with the ambiguities found while encoding them.
+type: software
+authors:
+  - family-names: "Mahdavi Shirkharkolaei"
+    given-names: "Alireza"
+version: 0.1.0
+date-released: 2026-11-15
+license: MIT
+repository-code: "https://github.com/AlirezaMahdavishirkharkolaei/Legal-to-Code"
+keywords:
+  - rules as code
+  - computational law
+  - international taxation
+  - OECD Model Tax Convention
+  - WTO dispute settlement
+  - legal technology
