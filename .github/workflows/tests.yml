@@ -13,5 +13,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
       - run: pytest -q
-      - run: l2c index --format csv > /dev/null && l2c run oecd_mtc.withholding_rate '{"income": "dividends"}'
+      - name: CLI smoke test
+        run: |
+          l2c index --format csv > /dev/null
+          l2c run oecd_mtc.withholding_rate '{"income": "dividends"}'
       - run: python scripts/build_web.py
