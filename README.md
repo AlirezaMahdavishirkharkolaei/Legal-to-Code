@@ -98,6 +98,10 @@ The method and the rules for adding a provision are in [docs/method.md](docs/met
 
 Research and teaching aid. Not legal or tax advice.
 
+## Collaboration
+
+**Mohammad Amir Modami** collaborated on the legal analysis and research behind this project.
+
 ## Citation
 
 See [CITATION.cff](CITATION.cff).
